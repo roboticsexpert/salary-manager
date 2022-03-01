@@ -1,0 +1,44 @@
+version: '3.7'
+
+x-common-variabels:
+    mysqlUsername: &mysqlUsername salary
+    mysqlDatabase: &mysqlDatabase salary
+    mysqlPassword: &mysqlPassword salary
+
+x-php-common-service: &x-php-common-service
+    build: .
+    user: root
+    volumes:
+        - ./:/var/www
+    depends_on:
+        - mysql
+    environment:
+        DB_USERNAME: *mysqlUsername
+        DB_PASSWORD: *mysqlPassword
+        DB_DATABASE: *mysqlDatabase
+        DB_CONNECTION: mysql
+        DB_HOST: mysql
+        DB_PORT: 3306
+services:
+    web:
+        <<: *x-php-common-service
+        ports:
+            - 9000:8000
+        command: php artisan serve
+    migrate:
+        <<: *x-php-common-service
+        command: php artisan migrate --force
+
+    mysql:
+        image: mysql:latest
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+        environment:
+            MYSQL_USER: *mysqlUsername
+            MYSQL_PASSWORD: *mysqlPassword
+            MYSQL_ROOT_PASSWORD: *mysqlPassword
+            MYSQL_DATABASE: *mysqlDatabase
+        ports:
+            - 3306:3306
+
+
